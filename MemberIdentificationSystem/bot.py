@@ -88,7 +88,7 @@ async def wait_until_next_monday_midnight():
 async def send_announcements():
     now = datetime.datetime.now(datetime.timezone.utc)
     # Send only if it's Monday at midnight UTC
-    if now.weekday() == 0 and now.hour == 0:
+    if now.weekday() == 0 and now.hour == 12:
         print("Sending Monday announcements...")
         for guild in bot.guilds:
             settings = get_guild_setting(guild.id)
