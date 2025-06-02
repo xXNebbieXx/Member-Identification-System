@@ -313,9 +313,12 @@ class ReportModal(Modal, title="Report a Rulebreaker"):
         else:
             await interaction.response.send_message("⚠️ Report channel not found.", ephemeral=True)
 
-@bot.tree.command(name="911", description="Report a rulebreaker to the staff.")
-async def call_911(interaction: discord.Interaction):
+@bot.tree.command(name="112", description="Report a rulebreaker to the staff.")
+async def call_112(interaction: discord.Interaction):
     await interaction.response.send_modal(ReportModal())
 
+@bot.slash_command(guild_ids=[1378066030831861770], name="hello", description="Say hello")
+async def hello(ctx: discord.ApplicationContext):
+    await ctx.respond("Hi there!")
 # ---------- Run Bot ----------
 bot.run("MTM3ODAxNzA3Mjk5NDMyMDQwNA.GwGwBo.nTb5OHZ0r_AKULHuyVECrjokcX3mjnKsh2U7QI")
