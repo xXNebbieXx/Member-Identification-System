@@ -285,4 +285,4 @@ async def idcard(ctx, member: discord.Member = None):
 
 # ---------- Run Bot ----------
 
-bot.run("Your_Token_Here")
+bot.run("MTM3ODAxNzA3Mjk5NDMyMDQwNA.GwGwBo.nTb5OHZ0r_AKULHuyVECrjokcX3mjnKsh2U7QI")
