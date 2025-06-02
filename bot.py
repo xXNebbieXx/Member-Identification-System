@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands, tasks
 from discord.ui import Modal, TextInput
+from discord import app_commands
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 import io
 import os
@@ -299,44 +300,28 @@ async def set_report_channel(ctx, channel: discord.TextChannel):
 
 
 class ReportModal(Modal, title="Report a Rulebreaker"):
-
-    reason = TextInput(
-        label="Reason for report",
-        style=discord.TextStyle.paragraph,
-        placeholder="Describe the rulebreaker and incident",
-        required=True,
-        max_length=500,
-    )
+    report_reason = TextInput(label="What rule was broken?", style=discord.TextStyle.paragraph)
+    evidence = TextInput(label="Any evidence or extra details?", required=False)
 
     async def on_submit(self, interaction: discord.Interaction):
-        settings = get_guild_setting(interaction.guild.id)
-        report_channel_id = settings.get("report_channel_id")
-        report_channel = interaction.guild.get_channel(report_channel_id) if report_channel_id else None
+        # Send to a report channel (replace with your actual channel ID)
+        report_channel_id = 123456789012345678  # ← replace this
+        report_channel = interaction.client.get_channel(report_channel_id)
 
-        if not report_channel:
-            await interaction.response.send_message(
-                "Report channel is not set. Please ask an admin to set it with `!setreportchannel #channel`.",
-                ephemeral=True
+        if report_channel:
+            await report_channel.send(
+                f"📣 **New Rulebreaker Report**\n"
+                f"👤 Reporter: {interaction.user.mention}\n"
+                f"📄 Reason: {self.report_reason.value}\n"
+                f"📎 Evidence: {self.evidence.value or 'N/A'}"
             )
-            return
+            await interaction.response.send_message("✅ Report submitted to staff.", ephemeral=True)
+        else:
+            await interaction.response.send_message("⚠️ Report channel not found.", ephemeral=True)
 
-        embed = discord.Embed(title="🚨 Rulebreaker Report", color=discord.Color.red())
-        embed.add_field(name="Reporter", value=interaction.user.mention, inline=True)
-        embed.add_field(name="Channel", value=interaction.channel.mention, inline=True)
-        embed.add_field(name="Reason", value=self.reason.value, inline=False)
-        embed.timestamp = discord.utils.utcnow()
-
-        await report_channel.send(embed=embed)
-        await interaction.response.send_message("Thank you for your report! Staff will review it shortly.", ephemeral=True)
-
-@bot.command(name="911")
-@commands.guild_only()
-async def call_911(ctx):
-    # You can keep your Citizen role check here or customize
-    if not any("citizen" in role.name.lower() for role in ctx.author.roles):
-        await ctx.send("You must be a Citizen to use this command.")
-        return
-
+@bot.tree.command(name="911", description="Report a rulebreaker to the staff.")
+async def call_911(interaction: discord.Interaction):
+    await interaction.response.send_modal(ReportModal())
     modal = ReportModal()
     await ctx.send_modal(modal)
 
