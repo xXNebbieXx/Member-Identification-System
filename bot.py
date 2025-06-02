@@ -299,7 +299,7 @@ class ReportModal(Modal, title="Report a Rulebreaker"):
 
     async def on_submit(self, interaction: discord.Interaction):
         # Send to a report channel (replace with your actual channel ID)
-        report_channel_id = 123456789012345678  # ← replace this
+        report_channel_id = 1345084972821778472  # ← replace this
         report_channel = interaction.client.get_channel(report_channel_id)
 
         if report_channel:
