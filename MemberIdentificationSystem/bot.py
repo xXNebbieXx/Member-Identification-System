@@ -88,7 +88,7 @@ async def wait_until_next_monday_midnight():
 async def send_announcements():
     now = datetime.datetime.now(datetime.timezone.utc)
     # Send only if it's Monday at midnight UTC
-    if now.weekday() == 0 and now.hour == 12:
+    if now.weekday() == 0 and now.hour == 3:
         print("Sending Monday announcements...")
         for guild in bot.guilds:
             settings = get_guild_setting(guild.id)
@@ -105,7 +105,7 @@ async def send_announcements():
 @bot.event
 async def on_ready():
     print(f"Bot is online as {bot.user}")
-    # Wait until next Monday midnight then start the task loop
+    # Wait until next Monday midday then start the task loop
     await wait_until_next_monday_midnight()
     send_announcements.start()
 
