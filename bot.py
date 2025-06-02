@@ -214,7 +214,7 @@ async def set_report_channel(ctx, channel: discord.TextChannel):
     await ctx.send(f"Report channel set to {channel.mention}")
 
 class ReportModal(Modal, title="Report a Rulebreaker"):
-    report_reason = TextInput(label="What rule was broken?", style=discord.TextStyle.paragraph)
+    report_reason = TextInput(label="What rule was broken and who broke that rule?", style=discord.TextStyle.paragraph)
     evidence = TextInput(label="Any evidence or extra details?", required=False)
 
     async def on_submit(self, interaction: discord.Interaction):
