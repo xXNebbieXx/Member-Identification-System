@@ -28,7 +28,7 @@ ANNOUNCEMENTS = [
     "After investigation the ministry has determined it to be plausible to release 50% of the Gold from the reserves.",
     "After investigation the ministry has determined it to be plausible to release 50% of the Copper from the reserves.",
     "After investigation the ministry has determined it to be plausible to release 50% of the Iron from the reserves.",
-    "In an unprecedented showing of force the native Tikitu population of Alvoria have begun to riot in the western mountains of Alvoria due to this riot the ministry has deemed it necessary to allocate 5% of Alvorias resources to the Military and Police in efforts to stop them.",
+    "In an unprecedented showing of force the native Tikitu population of Alvoria have begun to riot in the western mountains of Alvoria due to this riot the ministry has deemed it necessary to al[...]",  # truncated for brevity
     "A sudden drop in agricultural output has prompted the Ministry to initiate food rationing procedures.",
     "A cholera outbreak has been reported along the port cities. The Ministry urges all households to boil water and observe quarantine where applicable.",
     "Due to an unseasonably harsh winter, the Ministry has decreed a doubling of coal allocations to urban heating facilities.",
@@ -56,7 +56,6 @@ def save_settings():
         json.dump(guild_settings, f, indent=4)
 
 def get_guild_setting(guild_id):
-    # Added report_channel_id with default None
     default = {"channel_id": None, "enabled": False, "report_channel_id": None}
     return guild_settings.get(str(guild_id), default)
 
@@ -80,8 +79,8 @@ def has_ministry_or_admin(ctx):
 
 # ---------- Announcement Task ----------
 async def wait_until_next_monday_midnight():
-    now = datetime.datetime.now(datetime.timezone.utc)  # timezone-aware UTC datetime
-    days_ahead = 0 - now.weekday()  # Monday is 0
+    now = datetime.datetime.now(datetime.timezone.utc)
+    days_ahead = 0 - now.weekday()
     if days_ahead <= 0:
         days_ahead += 7
     next_monday = (now + datetime.timedelta(days=days_ahead)).replace(hour=0, minute=0, second=0, microsecond=0)
@@ -90,10 +89,9 @@ async def wait_until_next_monday_midnight():
     if wait_seconds > 0:
         await asyncio.sleep(wait_seconds)
 
-@tasks.loop(minutes=60)  # Check every hour to avoid delay
+@tasks.loop(minutes=60)
 async def send_announcements():
     now = datetime.datetime.now(datetime.timezone.utc)
-    # Send only if it's Monday at midday UTC
     if now.weekday() == 0 and now.hour == 12:
         print("Sending Monday announcements...")
         for guild in bot.guilds:
@@ -111,12 +109,10 @@ async def send_announcements():
 @bot.event
 async def on_ready():
     print(f"Bot is online as {bot.user}")
-    # Wait until next Monday midday then start the task loop
     await wait_until_next_monday_midnight()
     send_announcements.start()
 
 # ---------- Announcement Commands ----------
-
 @bot.group(invoke_without_command=True)
 @commands.guild_only()
 async def announcement(ctx):
@@ -196,7 +192,6 @@ async def idcard(ctx, member: discord.Member = None):
         await ctx.send("You must be a Citizen to request an ID card.")
         return
 
-
     # Create ID card base
     width, height = 600, 250
     card = Image.new("RGBA", (width, height))
@@ -207,21 +202,21 @@ async def idcard(ctx, member: discord.Member = None):
         bg_image = bg_image.resize((width, height), Image.LANCZOS)
 
         # Make the background semi-transparent
-        bg_alpha = bg_image.split()[3].point(lambda p: p * 0.5)  # Adjust 0.5 for opacity level
+        bg_alpha = bg_image.split()[3].point(lambda p: p * 0.5)
         bg_image.putalpha(bg_alpha)
 
-        card.paste(bg_image, (0, 0), bg_image)  # Ensure background is applied first
+        card.paste(bg_image, (0, 0), bg_image)
     except Exception as e:
         print(f"Error loading background image: {e}")
-        card = Image.new("RGBA", (width, height), color=(40, 40, 60, 255))  # Fallback solid color
+        card = Image.new("RGBA", (width, height), color=(40, 40, 60, 255))
 
     draw = ImageDraw.Draw(card)
 
-    # Load fonts (Use fallback if custom font fails)
+    # Load fonts
     try:
         font_data = ImageFont.truetype(FONT_PATH, 20)
     except IOError:
-        font_data = ImageFont.load_default()  # Fallback font
+        font_data = ImageFont.load_default()
         await ctx.send("Custom font not found, using default.")
 
     # Dynamically fit server name in title (with server-specific override)
@@ -298,7 +293,6 @@ async def set_report_channel(ctx, channel: discord.TextChannel):
     set_guild_setting(ctx.guild.id, report_channel_id=channel.id)
     await ctx.send(f"Report channel set to {channel.mention}")
 
-
 class ReportModal(Modal, title="Report a Rulebreaker"):
     report_reason = TextInput(label="What rule was broken?", style=discord.TextStyle.paragraph)
     evidence = TextInput(label="Any evidence or extra details?", required=False)
@@ -322,9 +316,6 @@ class ReportModal(Modal, title="Report a Rulebreaker"):
 @bot.tree.command(name="911", description="Report a rulebreaker to the staff.")
 async def call_911(interaction: discord.Interaction):
     await interaction.response.send_modal(ReportModal())
-    modal = ReportModal()
-    await ctx.send_modal(modal)
 
 # ---------- Run Bot ----------
-
 bot.run("MTM3ODAxNzA3Mjk5NDMyMDQwNA.GwGwBo.nTb5OHZ0r_AKULHuyVECrjokcX3mjnKsh2U7QI")
