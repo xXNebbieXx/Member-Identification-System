@@ -80,15 +80,15 @@ async def wait_until_next_monday_midnight():
         days_ahead += 7
     next_monday = (now + datetime.timedelta(days=days_ahead)).replace(hour=0, minute=0, second=0, microsecond=0)
     wait_seconds = (next_monday - now).total_seconds()
-    print(f"Waiting {wait_seconds} seconds until next Monday midnight UTC...")
+    print(f"Waiting {wait_seconds} seconds until next Monday midday UTC...")
     if wait_seconds > 0:
         await asyncio.sleep(wait_seconds)
 
 @tasks.loop(minutes=60)  # Check every hour to avoid delay
 async def send_announcements():
     now = datetime.datetime.now(datetime.timezone.utc)
-    # Send only if it's Monday at midnight UTC
-    if now.weekday() == 0 and now.hour == 3:
+    # Send only if it's Monday at midday UTC
+    if now.weekday() == 0 and now.hour == 12:
         print("Sending Monday announcements...")
         for guild in bot.guilds:
             settings = get_guild_setting(guild.id)
