@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands, tasks
+from discord.ui import Modal, TextInput
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 import io
 import os
@@ -296,7 +297,6 @@ async def set_report_channel(ctx, channel: discord.TextChannel):
     set_guild_setting(ctx.guild.id, report_channel_id=channel.id)
     await ctx.send(f"Report channel set to {channel.mention}")
 
-    from discord.ui import Modal, TextInput
 
 class ReportModal(Modal, title="Report a Rulebreaker"):
 
