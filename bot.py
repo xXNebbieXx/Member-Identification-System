@@ -54,15 +54,19 @@ def save_settings():
         json.dump(guild_settings, f, indent=4)
 
 def get_guild_setting(guild_id):
-    return guild_settings.get(str(guild_id), {"channel_id": None, "enabled": False})
+    # Added report_channel_id with default None
+    default = {"channel_id": None, "enabled": False, "report_channel_id": None}
+    return guild_settings.get(str(guild_id), default)
 
-def set_guild_setting(guild_id, channel_id=None, enabled=None):
+def set_guild_setting(guild_id, channel_id=None, enabled=None, report_channel_id=None):
     guild_id_str = str(guild_id)
-    settings = guild_settings.get(guild_id_str, {"channel_id": None, "enabled": False})
+    settings = guild_settings.get(guild_id_str, {"channel_id": None, "enabled": False, "report_channel_id": None})
     if channel_id is not None:
         settings["channel_id"] = channel_id
     if enabled is not None:
         settings["enabled"] = enabled
+    if report_channel_id is not None:
+        settings["report_channel_id"] = report_channel_id
     guild_settings[guild_id_str] = settings
     save_settings()
 
@@ -282,6 +286,59 @@ async def idcard(ctx, member: discord.Member = None):
         card.save(image_binary, 'PNG')
         image_binary.seek(0)
         await ctx.send(file=discord.File(fp=image_binary, filename='id_card.png'))
+
+@bot.command(name="setreportchannel")
+@commands.guild_only()
+async def set_report_channel(ctx, channel: discord.TextChannel):
+    if not has_ministry_or_admin(ctx):
+        await ctx.send("You do not have permission to use this command.")
+        return
+    set_guild_setting(ctx.guild.id, report_channel_id=channel.id)
+    await ctx.send(f"Report channel set to {channel.mention}")
+
+    from discord.ui import Modal, TextInput
+
+class ReportModal(Modal, title="Report a Rulebreaker"):
+
+    reason = TextInput(
+        label="Reason for report",
+        style=discord.TextStyle.paragraph,
+        placeholder="Describe the rulebreaker and incident",
+        required=True,
+        max_length=500,
+    )
+
+    async def on_submit(self, interaction: discord.Interaction):
+        settings = get_guild_setting(interaction.guild.id)
+        report_channel_id = settings.get("report_channel_id")
+        report_channel = interaction.guild.get_channel(report_channel_id) if report_channel_id else None
+
+        if not report_channel:
+            await interaction.response.send_message(
+                "Report channel is not set. Please ask an admin to set it with `!setreportchannel #channel`.",
+                ephemeral=True
+            )
+            return
+
+        embed = discord.Embed(title="🚨 Rulebreaker Report", color=discord.Color.red())
+        embed.add_field(name="Reporter", value=interaction.user.mention, inline=True)
+        embed.add_field(name="Channel", value=interaction.channel.mention, inline=True)
+        embed.add_field(name="Reason", value=self.reason.value, inline=False)
+        embed.timestamp = discord.utils.utcnow()
+
+        await report_channel.send(embed=embed)
+        await interaction.response.send_message("Thank you for your report! Staff will review it shortly.", ephemeral=True)
+
+@bot.command(name="911")
+@commands.guild_only()
+async def call_911(ctx):
+    # You can keep your Citizen role check here or customize
+    if not any("citizen" in role.name.lower() for role in ctx.author.roles):
+        await ctx.send("You must be a Citizen to use this command.")
+        return
+
+    modal = ReportModal()
+    await ctx.send_modal(modal)
 
 # ---------- Run Bot ----------
 
