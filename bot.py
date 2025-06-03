@@ -222,12 +222,15 @@ class ReportModal(Modal, title="Report a Rulebreaker"):
         report_channel_id = 1345084972821778472
         report_channel = interaction.client.get_channel(report_channel_id)
         if report_channel:
-            await report_channel.send(
-                f"📣 **New Rulebreaker Report**\n"
-                f"👤 Reporter: {interaction.user.mention}\n"
-                f"📄 Reason: {self.report_reason.value}\n"
-                f"📎 Evidence: {self.evidence.value or 'N/A'}"
-            )
+    police_role_id = 1368273752135176315  
+    await report_channel.send(
+        f"📣 **New Rulebreaker Report**\n"
+        f"<@&{police_role_id}>\n"
+        f"👤 Reporter: {interaction.user.mention}\n"
+        f"📄 Reason: {self.report_reason.value}\n"
+        f"📎 Evidence: {self.evidence.value or 'N/A'}"
+    )
+
             await interaction.response.send_message("✅ Report submitted.", ephemeral=True)
         else:
             await interaction.response.send_message("⚠️ Report channel not found.", ephemeral=True)
