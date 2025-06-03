@@ -236,4 +236,4 @@ class ReportModal(Modal, title="Report a Rulebreaker"):
 async def call_112(interaction: discord.Interaction):
     await interaction.response.send_modal(ReportModal())
 
-bot.run("MTM3ODAxNzA3Mjk5NDMyMDQwNA.GwGwBo.nTb5OHZ0r_AKULHuyVECrjokcX3mjnKsh2U7QI")
+bot.run(os.getenv("DISCORD_BOT_TOKEN"))
