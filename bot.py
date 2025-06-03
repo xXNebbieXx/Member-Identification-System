@@ -214,23 +214,21 @@ async def set_report_channel(ctx, channel: discord.TextChannel):
     await ctx.send(f"Report channel set to {channel.mention}")
 
 class ReportModal(Modal, title="Report a Rulebreaker"):
-    report_reason = TextInput(label="What rule was broken and who broke that rule?", 
-                              style=discord.TextStyle.paragraph)
+    report_reason = TextInput(label="What rule was broken and who broke that rule?", style=discord.TextStyle.paragraph)
     evidence = TextInput(label="Any links to the illegal message(s)?", required=False)
 
     async def on_submit(self, interaction: discord.Interaction):
         report_channel_id = 1345084972821778472
         report_channel = interaction.client.get_channel(report_channel_id)
         if report_channel:
-        police_role_id = 1368273752135176315  
-        await report_channel.send(
-        f"📣 **New Rulebreaker Report**\n"
-        f"<@&{police_role_id}>\n"
-        f"👤 Reporter: {interaction.user.mention}\n"
-        f"📄 Reason: {self.report_reason.value}\n"
-        f"📎 Evidence: {self.evidence.value or 'N/A'}"
-    )
-
+            police_role_id = 1368273752135176315  
+            await report_channel.send(
+                f"📣 **New Rulebreaker Report**\n"
+                f"<@&{police_role_id}>\n"
+                f"👤 Reporter: {interaction.user.mention}\n"
+                f"📄 Reason: {self.report_reason.value}\n"
+                f"📎 Evidence: {self.evidence.value or 'N/A'}"
+            )
             await interaction.response.send_message("✅ Report submitted.", ephemeral=True)
         else:
             await interaction.response.send_message("⚠️ Report channel not found.", ephemeral=True)
