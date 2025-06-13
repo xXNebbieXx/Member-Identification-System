@@ -144,20 +144,46 @@ async def on_message(message):
     if message.author.bot:
         return
 
+    def sanitize_content(msg):
+        return discord.utils.escape_markdown(
+            discord.utils.escape_mentions(msg.content)
+        )
+
     for group, channels in linked_channels.items():
         if message.channel.id in channels:
             for channel_id in channels:
                 if channel_id != message.channel.id:
                     channel = bot.get_channel(channel_id)
                     if channel:
+                        sanitized = sanitize_content(message)
+
+                        # Skip empty messages with no attachments
+                        if sanitized.strip() == "" and not message.attachments:
+                            print(f"Skipped empty message from {message.author} in {message.channel}")
+                            continue
+
+                        # Check for reply info
+                        reply_info = ""
+                        if message.reference and message.reference.resolved:
+                            replied_to = message.reference.resolved
+                            if isinstance(replied_to, discord.Message):
+                                reply_author = replied_to.author.display_name
+                                reply_content = replied_to.content[:50] + ("..." if len(replied_to.content) > 50 else "")
+                                reply_info = f"(replying to {reply_author}: \"{discord.utils.escape_markdown(discord.utils.escape_mentions(reply_content))}\")\n"
+
+                        # Build relay message
+                        content = f"**[{message.guild.name}] {message.author.display_name}:**\n{reply_info}{sanitized}"
+
+                        # Handle attachments
                         try:
-                            sanitized = sanitize_content(message)
-                            await channel.send(
-                                f"**[{message.guild.name}] {message.author.display_name}:** {sanitized}"
-                            )
+                            if message.attachments:
+                                files = [await attachment.to_file() for attachment in message.attachments]
+                                await channel.send(content, files=files)
+                            else:
+                                await channel.send(content)
                         except Exception as e:
-                            print(f"Failed to send to {channel.name}: {e}")
-            break
+                            print(f"Failed to send to {channel.name} in {channel.guild.name}: {e}")
+            break  # Only process one group match
 
     await bot.process_commands(message)
 
