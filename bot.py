@@ -69,6 +69,19 @@ def set_guild_setting(guild_id, channel_id=None, enabled=None, report_channel_id
 def has_ministry_or_admin(ctx):
     return ctx.author.guild_permissions.administrator or discord.utils.get(ctx.author.roles, name="Ministry of the Interior") is not None
 
+LINKED_CHANNELS_FILE = "linked_channels.json"
+
+if os.path.exists(LINKED_CHANNELS_FILE):
+    with open(LINKED_CHANNELS_FILE, "r") as f:
+        linked_channels = json.load(f)
+else:
+    linked_channels = {}
+
+def save_linked_channels():
+    with open(LINKED_CHANNELS_FILE, "w") as f:
+        json.dump(linked_channels, f, indent=4)
+
+
 async def wait_until_next_monday_midnight():
     now = datetime.datetime.now(datetime.timezone.utc)
     days_ahead = (7 - now.weekday()) % 7
@@ -104,6 +117,27 @@ async def on_ready():
     print(f"Bot is online as {bot.user}")
     await wait_until_next_monday_midnight()
     send_announcements.start()
+
+@bot.event
+async def on_message(message):
+    if message.author.bot:
+        return
+
+    for group, channels in linked_channels.items():
+        if message.channel.id in channels:
+            for channel_id in channels:
+                if channel_id != message.channel.id:
+                    channel = bot.get_channel(channel_id)
+                    if channel:
+                        try:
+                            await channel.send(
+                                f"**[{message.guild.name}] {message.author.display_name}:** {message.content}"
+                            )
+                        except Exception as e:
+                            print(f"Failed to send to {channel.name}: {e}")
+            break  # Only match one group
+
+    await bot.process_commands(message)
 
 @bot.group(invoke_without_command=True)
 @commands.guild_only()
@@ -232,6 +266,29 @@ class ReportModal(Modal, title="Report a Rulebreaker"):
             await interaction.response.send_message("✅ Report submitted.", ephemeral=True)
         else:
             await interaction.response.send_message("⚠️ Report channel not found.", ephemeral=True)
+
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def linkchannel(ctx, group_name: str):
+    channel_id = ctx.channel.id
+    linked_channels.setdefault(group_name, [])
+    if channel_id not in linked_channels[group_name]:
+        linked_channels[group_name].append(channel_id)
+        save_linked_channels()
+        await ctx.send(f"Channel linked to group `{group_name}`.")
+    else:
+        await ctx.send("This channel is already linked to that group.")
+
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def unlinkchannel(ctx, group_name: str):
+    channel_id = ctx.channel.id
+    if group_name in linked_channels and channel_id in linked_channels[group_name]:
+        linked_channels[group_name].remove(channel_id)
+        save_linked_channels()
+        await ctx.send(f"Channel unlinked from group `{group_name}`.")
+    else:
+        await ctx.send("This channel is not linked to that group.")
 
 @bot.tree.command(name="112", description="Report a rulebreaker to the staff.")
 async def call_112(interaction: discord.Interaction):
