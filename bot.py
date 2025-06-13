@@ -81,6 +81,27 @@ def save_linked_channels():
     with open(LINKED_CHANNELS_FILE, "w") as f:
         json.dump(linked_channels, f, indent=4)
 
+def sanitize_content(message):
+    content = message.content
+
+    # Replace user mentions
+    for user in message.mentions:
+        content = content.replace(f"<@{user.id}>", f"@{user.display_name}")
+        content = content.replace(f"<@!{user.id}>", f"@{user.display_name}")  # for nickname mentions
+
+    # Replace role mentions
+    for role in message.role_mentions:
+        content = content.replace(f"<@&{role.id}>", f"@{role.name}")
+
+    # Replace channel mentions
+    for ch in message.channel_mentions:
+        content = content.replace(f"<#{ch.id}>", f"#{ch.name}")
+
+    # Prevent @everyone and @here pings
+    content = content.replace("@everyone", "@ everyone").replace("@here", "@ here")
+
+    return content
+
 
 async def wait_until_next_monday_midnight():
     now = datetime.datetime.now(datetime.timezone.utc)
@@ -130,14 +151,16 @@ async def on_message(message):
                     channel = bot.get_channel(channel_id)
                     if channel:
                         try:
+                            sanitized = sanitize_content(message)
                             await channel.send(
-                                f"**[{message.guild.name}] {message.author.display_name}:** {message.content}"
+                                f"**[{message.guild.name}] {message.author.display_name}:** {sanitized}"
                             )
                         except Exception as e:
                             print(f"Failed to send to {channel.name}: {e}")
-            break  # Only match one group
+            break
 
     await bot.process_commands(message)
+
 
 @bot.group(invoke_without_command=True)
 @commands.guild_only()
