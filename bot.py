@@ -123,7 +123,7 @@ async def send_announcements():
                 if channel:
                     message = random.choice(ANNOUNCEMENTS)
                     try:
-                        await channel.send(f"**# MoI:1378355766523592824 | Announcement From Ministry of Interior**\n{message}")
+                        await channel.send(f"**# <:MoI:1378355766523592824> | Announcement From Ministry of Interior**\n{message}")
                     except Exception as e:
                         print(f"Failed to send announcement to {guild.name}: {e}")
 
