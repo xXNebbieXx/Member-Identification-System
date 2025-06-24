@@ -26,7 +26,6 @@ ANNOUNCEMENTS = [
     "After investigation the ministry has determined it to be plausible to release 50% of the Gold from the reserves.",
     "After investigation the ministry has determined it to be plausible to release 50% of the Copper from the reserves.",
     "After investigation the ministry has determined it to be plausible to release 50% of the Iron from the reserves.",
-    "In an unprecedented showing of force the native Tikitu population of Alvoria have begun to riot in the western mountains of Alvoria...",
     "A sudden drop in agricultural output has prompted the Ministry to initiate food rationing procedures.",
     "A cholera outbreak has been reported along the port cities. The Ministry urges all households to boil water and observe quarantine where applicable.",
     "Due to an unseasonably harsh winter, the Ministry has decreed a doubling of coal allocations to urban heating facilities.",
